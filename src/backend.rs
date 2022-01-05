@@ -116,7 +116,7 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
     fn ensure_prepared(&mut self) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
         if !self.init_flag {
             self.call_cairo(|c| {
-                let (x0, y0, x1, y1) = c.clip_extents();
+                let (x0, y0, x1, y1) = c.clip_extents().unwrap();
                 c.scale(
                     (x1 - x0) / f64::from(self.width),
                     (y1 - y0) / f64::from(self.height),
@@ -206,7 +206,8 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
             self.call_cairo(|c| c.line_to(f64::from(x), f64::from(y)))?;
         }
 
-        self.call_cairo(|c| c.stroke())
+        self.call_cairo(|c| c.stroke()).unwrap();
+        Ok(())
     }
 
     fn fill_polygon<S: BackendStyle, I: IntoIterator<Item = BackendCoord>>(
@@ -270,7 +271,7 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
     ) -> Result<(u32, u32), DrawingErrorKind<Self::ErrorType>> {
         self.set_font(font)?;
         self.call_cairo(|c| {
-            let extents = c.text_extents(text);
+            let extents = c.text_extents(text).unwrap();
             (extents.width as u32, extents.height as u32)
         })
     }
@@ -306,7 +307,7 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
         self.set_color(&color)?;
 
         self.call_cairo(|c| {
-            let extents = c.text_extents(text);
+            let extents = c.text_extents(text).unwrap();
             let dx = match style.anchor().h_pos {
                 HPos::Left => 0.0,
                 HPos::Right => -extents.width,
